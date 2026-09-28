@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Geometry Dash</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #0a0e27;
+      font-family: 'Arial', sans-serif;
+      color: white;
+      user-select: none;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #ui {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    #hud {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    #score {
+      font-size: 32px;
+      font-weight: bold;
+      color: #00ff88;
+    }
+
+    #progress {
+      font-size: 16px;
+      margin-top: 8px;
+      color: #00d4ff;
+    }
+
+    #menu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a1a3e 0%, #0f3460 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+      pointer-events: all;
+    }
+
+    #menu.hidden {
+      display: none;
+      pointer-events: none;
+    }
+
+    #levelSelect {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a1a3e 0%, #0f3460 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+      pointer-events: all;
+      overflow-y: auto;
+    }
+
+    #levelSelect.hidden {
+      display: none;
+      pointer-events: none;
+    }
+
+    .menu-title {
+      font-size: 64px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      background: linear-gradient(90deg, #ff006e, #00f5ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .menu-button {
+      padding: 16px 40px;
+      margin: 12px;
+      font-size: 20px;
+      font-weight: bold;
+      border: 3px solid #00f5ff;
+      background: transparent;
+      color: #00f5ff;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      pointer-events: all;
+    }
+
+    .menu-button:hover {
+      background: #00f5ff;
+      color: #0a0e27;
+      transform: scale(1.05);
+      box-shadow: 0 0 20px #00f5ff;
+    }
+
+    .level-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+      padding: 40px;
+      max-width: 1200px;
+    }
+
+    .level-button {
+      padding: 30px;
+      font-size: 18px;
+      font-weight: bold;
+      border: 3px solid #ff006e;
+      background: rgba(255, 0, 110, 0.2);
+      color: #ff006e;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      pointer-events: all;
+      text-align: center;
+    }
+
+    .level-button:hover {
+      background: rgba(255, 0, 110, 0.5);
+      transform: scale(1.05);
+      box-shadow: 0 0 20px #ff006e;
+    }
+
+    .level-button .stars {
+      display: block;
+      font-size: 14px;
+      margin-top: 8px;
+      color: #ffaa00;
+    }
+
+    #gameOver {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.95);
+      padding: 40px;
+      border-radius: 12px;
+      text-align: center;
+      z-index: 25;
+      display: none;
+      pointer-events: all;
+      border: 3px solid #ff006e;
+    }
+
+    #gameOver.show {
+      display: block;
+    }
+
+    #gameOver h2 {
+      font-size: 36px;
+      margin: 0 0 20px 0;
+      color: #ff006e;
+    }
+
+    #gameOver p {
+      font-size: 18px;
+      margin: 10px 0;
+    }
+
+    #gameOver .stars-display {
+      font-size: 32px;
+      color: #ffaa00;
+      margin: 20px 0;
+    }
+
+    #gameOver button {
+      padding: 12px 30px;
+      margin: 8px;
+      font-size: 16px;
+      border: 2px solid #00f5ff;
+      background: transparent;
+      color: #00f5ff;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+      pointer-events: all;
+    }
+
+    #gameOver button:hover {
+      background: #00f5ff;
+      color: #0a0e27;
+    }
+
+    #modeName {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      font-size: 20px;
+      color: #00ff88;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    #levelName {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      font-size: 18px;
+      color: #00d4ff;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="ui">
+    <div id="hud">
+      <div id="score">0</div>
+      <div id="progress">0%</div>
+    </div>
+    <div id="modeName">Cube</div>
+    <div id="levelName">Level 1</div>
+  </div>
+
+  <div id="menu">
+    <div class="menu-title">⚡ GEOMETRY DASH ⚡</div>
+    <button class="menu-button" onclick="startLevelSelect()">Play</button>
+    <button class="menu-button" onclick="alert('Controls: SPACE / CLICK / TAP to jump. Collect coins for points!')">How to Play</button>
+  </div>
+
+  <div id="levelSelect" class="hidden">
+    <h2 style="font-size: 48px; margin-bottom: 30px; color: #00f5ff;">Select Level</h2>
+    <button class="menu-button" onclick="backToMenu()" style="position: absolute; top: 20px; left: 20px;">← Back</button>
+    <div class="level-grid" id="levelGrid"></div>
+  </div>
+
+  <div id="gameOver">
+    <h2 id="gameOverTitle">Game Over!</h2>
+    <p id="gameOverScore">Score: 0</p>
+    <p id="gameOverPercent">Progress: 0%</p>
+    <div class="stars-display" id="starsDisplay">★☆☆</div>
+    <button onclick="restartLevel()">Retry</button>
+    <button onclick="startLevelSelect()">Level Select</button>
+    <button onclick="backToMenu()">Main Menu</button>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
