@@ -159,7 +159,8 @@ const player = {
   rotation: 0,
   grounded: false,
   mode: MODES.CUBE,
-  radius: 17
+  radius: 17,
+  speed: 360
 };
 
 let obstacles = [];
@@ -233,6 +234,7 @@ function loadLevel(levelIndex) {
   player.velocityX = 0;
   player.rotation = 0;
   player.grounded = true;
+  player.speed = 360;
 
   obstacles = level.obstacles.map(o => ({
     ...o,
@@ -259,6 +261,14 @@ function loadLevel(levelIndex) {
 function update(delta) {
   if (gameState !== 'playing') return;
 
+  // Auto-scroll player right
+  player.speed += delta * 3;
+  player.x += player.speed * delta;
+
+  // Increase score based on time
+  score += delta * 10;
+
+  // Vertical movement
   player.velocityY += player.gravity * delta;
   player.y += player.velocityY * delta;
 
@@ -300,9 +310,6 @@ function update(delta) {
     endLevel(true);
     return;
   }
-
-  // Auto-scroll camera
-  const cameraX = Math.max(0, player.x - 200);
 
   // Update particles
   for (const particle of particles) {
